@@ -22,7 +22,7 @@
 # These files hold critical details for malware infections, especially
 # Java related ones, e.g. BlackHole.
 
-import os
+import os, sys, argparse
 import struct
 import sys
 import time
@@ -241,33 +241,47 @@ def parse_dl(fname):
         return dl_file
     except:
         print "Unable to stat the downloaded file"
-    
+
+def print_results(idx,dl):
+    """ printing the results for the search"""
+    if 'sec2' in idx.keys():
+        print 'Download link: '+idx['sec2']['data_url']+'('+idx['sec2']['data_ip']+')'
+    if dl:
+        print dl['filename']+' --> '+dl['mimetype']
+        if 'jar_href' in dl.keys():
+            print "JAR download: "+dl['jar_href']
+            print "JAR main Class: "+dl['main_class']
+            print "JAR Parameters:"
+            for param, value in dl['parameters'].items():
+                print param+'-->'+value
+
+
 ##########################################################
 #    Start __main__()
 ##########################################################    
 if __name__ == "__main__":
-    print "Java IDX Parser -- version %s -- by @bbaskin\n" % __VERSION__
+    parser = argparse.ArgumentParser(description='Java IDX Parser -- version %s -- by @bbaskin  with contributions from Paul PC'  % __VERSION__)
+    parser.add_argument('-f', metavar='F', type=str, help='the base folder for the search')
     
+    args=parser.parse_args()
+    if args.f and os.path.isdir(args.f):
+        dirpath=args.f
+    elif args.f and not os.path.isdir(args.f):
+        parser.print_help()
+        sys.exit()
+    else:
+        dirpath='.'
     # parsing the whole folder
-    for currentdir,listofdirs,listoffiles in os.walk('.'):
-        for filename in listoffiles:
-            if filename[-3:] == "idx":
-                fname=currentdir+'/'+filename
-                print "\n\n"+"="*10+fname+"="*10
-                idx=parse_idx(fname)
-                
-                # looking for the files that the idx downloaded in the folder:
-                dl=parse_dl(fname[:-4])
-                
-                
-                if 'sec2' in idx.keys():
-                    print 'Download link: '+idx['sec2']['data_url']+'('+idx['sec2']['data_ip']+')'
-                if dl:
-                    print dl['filename']+' --> '+dl['mimetype']
-                    if 'jar_href' in dl.keys():
-                        print "JAR download: "+dl['jar_href']
-                        print "JAR main Class: "+dl['main_class']
-                        print "JAR Parameters:"
-                        for param, value in dl['parameters'].items():
-                            print param+'-->'+value
+    for currentdir,listofdirs,listoffiles in os.walk(dirpath):
+        if "Java" in currentdir or "6.0" in currentdir:
+            for filename in listoffiles:
+                if filename[-3:] == "idx":
+                    fname=currentdir+'/'+filename
+                    print "\n\n"+"="*10+fname+"="*10
+                    idx=parse_idx(fname)
+                    
+                    # looking for the files that the idx downloaded in the folder:
+                    dl=parse_dl(fname[:-4])
+                    
+                    print_results(idx,dl)
             ### End __main__()
