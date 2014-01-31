@@ -81,7 +81,7 @@ def sec2_parse_old(data):
 ##########################################################
 #    Section three contains a copy of the JAR manifest
 ##########################################################
-def sec3_parse(data,sec2_len,filesize):
+def sec3_parse(data,sec2_len,sec3_len,filesize):
     data.seek (128+sec2_len)
     sec3_data = data.read(sec3_len)
 
@@ -201,7 +201,7 @@ def parse_idx(fname):
 
     if sec3_len:
         #print "\n[*] Section 3 (Jar Manifest) found:" 
-        idx_file['sec3']=sec3_parse(data,sec2_len,filesize)
+        idx_file['sec3']=sec3_parse(data,sec2_len,sec3_len,filesize)
 
     if sec4_len:
         #print "\n[*] Section 4 (Code Signer) found:"
